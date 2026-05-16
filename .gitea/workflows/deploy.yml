@@ -1,0 +1,32 @@
+name: Deploy to test.codingportfolio.online
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete
+          path: dist/
+          remote_path: /var/www/test-portfolio/
+          remote_host: 135.181.149.116
+          remote_user: ryan
+          remote_key: ${{ secrets.DEPLOY_SSH_KEY }}
